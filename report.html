@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PulseNote | Pre-consultation GP report</title>
+    <style>
+      @page { size: A4; margin: 14mm; }
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 24px 16px; background: #f5f3ee; color: #1d1d1b; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+      main { max-width: 760px; margin: 0 auto; background: #fff; padding: 28px 32px; border-radius: 8px; }
+      header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px solid #1d1d1b; padding-bottom: 10px; }
+      h1 { font-size: 22px; margin: 0; }
+      h2 { font-size: 15px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+      .meta { margin: 4px 0 0; color: #4a4a46; font-size: 13px; }
+      .banner { margin: 12px 0 0; padding: 8px 10px; background: #fff4d6; border: 1px solid #c79a1c; font-size: 13px; }
+      button { font: inherit; font-weight: 600; padding: 10px 18px; min-height: 44px; border: 2px solid #1d1d1b; background: #1d1d1b; color: #fff; border-radius: 6px; cursor: pointer; }
+      ul { margin: 0; padding-left: 20px; }
+      .flags li { margin-bottom: 2px; }
+      .muted { color: #4a4a46; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th, td { border: 1px solid #b9b6ad; padding: 3px 8px; text-align: left; }
+      th { background: #ece9e1; }
+      td.num { text-align: right; font-variant-numeric: tabular-nums; }
+      .missed { font-weight: 700; }
+      .summary { padding: 10px 12px; background: #f1f6f4; border-left: 4px solid #2d6a5a; }
+      .error { color: #9b1c1c; font-weight: 600; }
+      footer { margin-top: 16px; font-size: 12px; color: #4a4a46; }
+      @media print {
+        body { background: #fff; padding: 0; font-size: 12px; }
+        main { max-width: none; padding: 0; border-radius: 0; }
+        button { display: none; }
+        h2 { margin-top: 12px; }
+        table { font-size: 11px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="report" aria-live="polite"><p>Loading report…</p></main>
+    <script type="module">
+      const root = document.querySelector('#report')
+      const patientId = new URLSearchParams(location.search).get('patientId') || 'synthetic-demo-patient'
+
+      const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char])
+      const list = (items, empty) => items.length ? `<ul>${items.map((item) => `<li>${item}</li>`).join('')}</ul>` : `<p class="muted">${empty}</p>`
+
+      function render(report) {
+        const { metrics, config } = report
+        const bp = metrics.bloodPressure
+        const rows = report.daily.map((day) => `
+          <tr>
+            <td>${day.date}</td>
+            <td class="num">${day.systolic === null ? '–' : `${day.systolic}/${day.diastolic}`}</td>
+            <td class="${day.dispenser === 'missed' ? 'missed' : ''}">${day.dispenser ?? '–'}</td>
+          </tr>`).join('')
+        const symptoms = metrics.checkins.symptomDays.map((item) => `${escapeHtml(item.label)}: ${item.days} day(s)`)
+        const reviews = metrics.checkins.reviewItems.map((item) => `${item.date}: ${item.evidence.map((quote) => `“${escapeHtml(quote)}”`).join(' ')}`)
+        const reports = metrics.checkins.medicationReports.map((item) => `${item.date}: ${escapeHtml(item.state)}${item.evidence ? ` (“${escapeHtml(item.evidence)}”)` : ''}`)
+
+        root.innerHTML = `
+          <header>
+            <div>
+              <h1>Pre-consultation GP report</h1>
+              <p class="meta">Patient: ${escapeHtml(report.syntheticPatientId)} · Period: ${metrics.period.from} to ${metrics.period.to} (${metrics.period.days} days) · Generated: ${new Date(report.generatedAt).toLocaleString()}</p>
+            </div>
+            <button type="button" id="printButton">Print</button>
+          </header>
+          <p class="banner">Synthetic demonstration data. Not a diagnosis, triage result or clinical advice. Targets ${config.systolicTarget}/${config.diastolicTarget} mmHg are configurable demo values.</p>
+
+          <h2>Summary</h2>
+          <div class="summary">
+            <p>${escapeHtml(report.summary.text)}</p>
+            <p class="muted">${report.summary.source === 'llm' ? 'AI-written summary of the figures below. Check against the data.' : 'Template summary (AI summary unavailable).'}</p>
+          </div>
+
+          <h2>Flags</h2>
+          ${list(report.flags.map((flag) => escapeHtml(flag.message)), 'No flags raised.')}
+
+          <h2>Blood pressure and dispenser</h2>
+          <p>${bp.readings} readings, ${bp.daysWithoutReading} day(s) without a reading. Average ${bp.averageSystolic ?? '–'}/${bp.averageDiastolic ?? '–'} mmHg, systolic range ${bp.minSystolic ?? '–'}–${bp.maxSystolic ?? '–'}. Dispenser: ${metrics.dispenser.dispensed} of ${metrics.dispenser.scheduled} dispensed, ${metrics.dispenser.missed} missed (dispensed does not confirm the dose was taken).</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>BP (mmHg)</th><th>Dispenser</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+
+          <h2>Check-ins (${metrics.checkins.confirmed} confirmed)</h2>
+          <p><strong>Symptoms</strong></p>
+          ${list(symptoms, 'No symptoms reported.')}
+          <p><strong>Patient-reported medication</strong></p>
+          ${list(reports, 'No medication reports.')}
+          <p><strong>Marked for clarification</strong></p>
+          ${list(reviews, 'None.')}
+
+          <footer>${metrics.checkins.excludedUnconfirmed} unconfirmed check-in(s) excluded. Report schema ${escapeHtml(report.schemaVersion)}.</footer>
+        `
+        document.querySelector('#printButton').addEventListener('click', () => window.print())
+      }
+
+      try {
+        const response = await fetch(`/api/reports/gp?patientId=${encodeURIComponent(patientId)}`)
+        const payload = await response.json()
+        if (!response.ok) throw new Error(payload?.error?.message || 'Report could not be loaded')
+        render(payload)
+      } catch (error) {
+        root.innerHTML = `<p class="error">${escapeHtml(error instanceof Error ? error.message : 'Report could not be loaded')}</p>`
+      }
+    </script>
+  </body>
+</html>

@@ -6,6 +6,7 @@ import { createServer as createViteServer } from 'vite'
 import { AnalyzeCheckinError, CheckinAnalysisSchema, analyzeCheckin } from './analyzeCheckin'
 import { getCheckins, saveCheckin } from './checkinStore'
 import { SYNTHETIC_PATIENT_ID, transformAnalysisToCheckin } from './checkinTransform'
+import { gpReportRouter } from './gpReport'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
@@ -63,6 +64,8 @@ app.get('/api/checkins', (request, response) => {
   const patientId = typeof request.query.patientId === 'string' ? request.query.patientId : SYNTHETIC_PATIENT_ID
   response.json({ syntheticPatientId: patientId, checkins: getCheckins(patientId) })
 })
+
+app.use(gpReportRouter)
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(root, 'dist')))
