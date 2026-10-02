@@ -6,7 +6,7 @@ import type { fetch } from 'undici'
 import type { UnifiedCheckin } from '../src/shared/checkin'
 import { getCheckins } from './checkinStore'
 import { SYNTHETIC_PATIENT_ID, countDistinctSymptomDays } from './checkinTransform'
-import { summarize } from './gpReportSummary'
+import { plural, summarize } from './gpReportSummary'
 
 // Demonstration values only, not clinical thresholds. The care team should set these.
 export const GP_REPORT_CONFIG = {
@@ -35,6 +35,14 @@ export type PatientReportData = {
 export type ReportFlag = { code: string; message: string }
 
 export type GpReportMetrics = ReturnType<typeof computeMetrics>
+
+const MEDICATION_REPORT_LABELS: Record<string, string> = {
+  reported_taken: 'patient reported taken',
+  reported_missed: 'patient reported missed',
+  reported_not_yet_taken: 'patient reported not yet taken',
+  uncertain: 'patient unsure',
+}
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
 const DAY_MS = 86_400_000
 const dateOf = (timestamp: string) => timestamp.slice(0, 10)
@@ -120,7 +128,7 @@ export function computeFlags(metrics: GpReportMetrics, config: GpReportConfig = 
   if (bp.readings > 0 && bp.aboveTargetCount / bp.readings >= config.aboveTargetShare) {
     flags.push({
       code: 'bp.above_target',
-      message: `${bp.aboveTargetCount} of ${bp.readings} readings at or above the configured demo target ${config.systolicTarget}/${config.diastolicTarget} mmHg`,
+      message: `${bp.aboveTargetCount} of ${bp.readings} readings at or above the configured demo target of ${config.systolicTarget}/${config.diastolicTarget} mmHg`,
     })
   }
   if (bp.firstHalfAverageSystolic !== null && bp.secondHalfAverageSystolic !== null
@@ -133,22 +141,22 @@ export function computeFlags(metrics: GpReportMetrics, config: GpReportConfig = 
   if (metrics.dispenser.missed >= config.dispenserMissedMin) {
     flags.push({
       code: 'medication.dispenser_missed',
-      message: `Dispenser recorded ${metrics.dispenser.missed} missed dose(s): ${metrics.dispenser.missedDates.join(', ')}`,
+      message: `Dispenser recorded ${plural(metrics.dispenser.missed, 'missed dose')}: ${metrics.dispenser.missedDates.join(', ')}`,
     })
   }
   if (metrics.medicationMismatches.length) {
     flags.push({
       code: 'medication.report_dispenser_mismatch',
-      message: `Patient report and dispenser disagree on ${metrics.medicationMismatches.map((item) => `${item.date} (patient: ${item.patientReport}, dispenser: ${item.dispenserStatus})`).join(', ')}`,
+      message: `Patient report and dispenser disagree on ${metrics.medicationMismatches.map((item) => `${item.date}: ${MEDICATION_REPORT_LABELS[item.patientReport] ?? item.patientReport}, dispenser recorded ${item.dispenserStatus}`).join('; ')}`,
     })
   }
   metrics.checkins.symptomDays
     .filter((symptom) => symptom.days >= config.recurringSymptomDays)
-    .forEach((symptom) => flags.push({ code: 'symptom.recurring', message: `${symptom.label} reported on ${symptom.days} days` }))
+    .forEach((symptom) => flags.push({ code: 'symptom.recurring', message: `${capitalize(symptom.label)} reported on ${plural(symptom.days, 'day')}` }))
   if (metrics.checkins.reviewItems.length) {
     flags.push({
       code: 'checkin.requires_review',
-      message: `${metrics.checkins.reviewItems.length} check-in(s) marked for clarification (not a triage result)`,
+      message: `${plural(metrics.checkins.reviewItems.length, 'check-in')} marked for clarification (not a triage result)`,
     })
   }
   return flags

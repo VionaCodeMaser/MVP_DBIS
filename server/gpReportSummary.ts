@@ -7,16 +7,20 @@ export type ReportSummary = { text: string; source: 'llm' | 'template' }
 const SUMMARY_PROMPT = `Write 3-5 plain English sentences for a GP, summarizing only the figures and flags in the JSON you receive.
 The data is synthetic. Do not diagnose, assess urgency, or give treatment or medication advice. Do not add numbers that are not in the JSON.`
 
+export function plural(count: number, singular: string, pluralForm = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : pluralForm}`
+}
+
 export function templateSummary(metrics: GpReportMetrics, flags: ReportFlag[]) {
   const bp = metrics.bloodPressure
   const dispenser = metrics.dispenser
   return [
     bp.readings
-      ? `${bp.readings} blood pressure readings over ${metrics.period.days} days, average ${bp.averageSystolic}/${bp.averageDiastolic} mmHg.`
+      ? `${plural(bp.readings, 'blood pressure reading')} over ${metrics.period.days} days, average ${bp.averageSystolic}/${bp.averageDiastolic} mmHg.`
       : 'No blood pressure readings in this period.',
-    `The dispenser recorded ${dispenser.dispensed} of ${dispenser.scheduled} scheduled doses as dispensed and ${dispenser.missed} as missed.`,
-    `${metrics.checkins.confirmed} confirmed check-in(s) were included.`,
-    flags.length ? `Flags: ${flags.map((flag) => flag.message).join('; ')}.` : 'No flags were raised.',
+    `Dispenser: ${dispenser.dispensed} of ${dispenser.scheduled} doses dispensed, ${dispenser.missed} missed.`,
+    `${plural(metrics.checkins.confirmed, 'confirmed check-in')}.`,
+    flags.length ? `${plural(flags.length, 'flag')} raised, listed below.` : 'No flags raised.',
   ].join(' ')
 }
 

@@ -91,8 +91,8 @@ describe('GP report summary', () => {
   it('falls back to the template summary when Ollama is unavailable', async () => {
     const summary = await summarize(metrics, flags, failingFetcher)
     expect(summary.source).toBe('template')
-    expect(summary.text).toContain('1 blood pressure readings over 10 days')
-    expect(summary.text).toContain('missed dose')
+    expect(summary.text).toContain('1 blood pressure reading over 10 days')
+    expect(summary.text).toContain('1 missed')
   })
 
   it('falls back to the template summary when Ollama returns no content', async () => {
