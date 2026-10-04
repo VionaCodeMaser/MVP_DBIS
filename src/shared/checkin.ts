@@ -85,5 +85,7 @@ export type UnifiedCheckin = {
   transcript: string
   confirmationStatus: ConfirmationStatus
   requiresHumanReview: boolean
+  extractionStatus?: 'complete' | 'failed'
   observations: CheckinObservation[]
 }
+
