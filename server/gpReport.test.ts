@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { fetch } from 'undici'
 import type { CheckinObservation, UnifiedCheckin } from '../src/shared/checkin'
-import { buildGpReport, computeFlags, computeMetrics } from './gpReport'
+import { buildGpReport, computeFlags, computeMetrics, detectMissedClusters } from './gpReport'
 import type { DispenserEvent, PatientReportData } from './gpReport'
 import { summarize } from './gpReportSummary'
 
@@ -63,19 +63,21 @@ describe('GP report flag rules', () => {
     expect(flagCodes(data({ dispenser: [dispense(1, 'dispensed'), dispense(2, 'dispensed')] }))).not.toContain('medication.dispenser_missed')
   })
 
-  it('flags a patient report that disagrees with the dispenser on the same day', () => {
-    const report = [checkin(3, [medication('reported_taken')])]
-    expect(flagCodes(data({ dispenser: [dispense(3, 'missed')], checkins: report }))).toContain('medication.report_dispenser_mismatch')
-    expect(flagCodes(data({ dispenser: [dispense(3, 'dispensed')], checkins: report }))).not.toContain('medication.report_dispenser_mismatch')
+  it('keeps patient medication statements separate from dispensing evidence', () => {
+    const report = [checkin(3, [medication('reported_missed')])]
+    const metrics = computeMetrics(data({ dispenser: [dispense(3, 'dispensed')], checkins: report }))
+    expect(metrics.medicationMismatches).toEqual([])
+    expect(metrics.checkins.medicationReports[0].state).toBe('reported_missed')
   })
 
-  it('flags a recurring symptom on the configured number of confirmed days and ignores unconfirmed check-ins', () => {
+  it('shows unconfirmed AI observations while preserving their status', () => {
     const dizzy = () => [symptom('symptom.dizziness', 'dizziness')]
     expect(flagCodes(data({ checkins: [checkin(1, dizzy()), checkin(4, dizzy()), checkin(7, dizzy())] }))).toContain('symptom.recurring')
 
     const withUnconfirmed = data({ checkins: [checkin(1, dizzy()), checkin(4, dizzy()), checkin(7, dizzy(), { confirmed: false })] })
-    expect(flagCodes(withUnconfirmed)).not.toContain('symptom.recurring')
-    expect(computeMetrics(withUnconfirmed).checkins.excludedUnconfirmed).toBe(1)
+    expect(flagCodes(withUnconfirmed)).toContain('symptom.recurring')
+    expect(computeMetrics(withUnconfirmed).checkins.unconfirmed).toBe(1)
+    expect(computeMetrics(withUnconfirmed).checkins.unconfirmed).toBe(1)
   })
 
   it('flags check-ins marked for human review', () => {
@@ -106,27 +108,22 @@ describe('GP report summary', () => {
   })
 })
 
-describe('synthetic report data', () => {
-  it('produces the demonstration flags for the first synthetic patient', async () => {
-    const report = await buildGpReport('synthetic-demo-patient', { fetcher: failingFetcher })
-    expect(report?.flags.map((flag) => flag.code)).toEqual([
-      'bp.above_target',
-      'bp.rising_trend',
-      'medication.dispenser_missed',
-      'medication.report_dispenser_mismatch',
-      'symptom.recurring',
-      'checkin.requires_review',
-    ])
-    expect(report?.metrics.checkins.excludedUnconfirmed).toBe(1)
-    expect(report?.daily).toHaveLength(14)
+describe('shared 30-day synthetic report', () => {
+  it('does not call separated misses a consecutive cluster', () => {
+    expect(detectMissedClusters([dispense(1, 'missed'), dispense(2, 'missed'), dispense(4, 'missed')])).toEqual([])
+    expect(detectMissedClusters([dispense(1, 'missed'), dispense(2, 'dispensed'), dispense(3, 'missed')])).toEqual([])
   })
-
-  it('raises no flags for the stable second synthetic patient', async () => {
-    const report = await buildGpReport('synthetic-demo-patient-2', { fetcher: failingFetcher })
-    expect(report?.flags).toEqual([])
+  it('calculates dispensing from actual events and detects the three-day cluster', async () => {
+    const report = await buildGpReport('synthetic-demo-patient')
+    expect(report?.daily).toHaveLength(30)
+    expect(report?.bloodPressure).toHaveLength(30)
+    expect(report?.wearable).toHaveLength(30)
+    expect(report?.dispensingAdherence).toBe(83.3)
+    expect(report?.missedClusters).toHaveLength(1)
+    expect(report?.missedClusters[0]).toMatchObject({from:'2026-09-18',to:'2026-09-20',count:3,higherBpDuringCluster:true})
+    expect(report?.missedClusters[0].events.every(e=>e.status==='missed')).toBe(true)
   })
-
   it('returns null for an unknown patient', async () => {
-    expect(await buildGpReport('unknown-patient', { fetcher: failingFetcher })).toBeNull()
+    expect(await buildGpReport('unknown-patient')).toBeNull()
   })
 })

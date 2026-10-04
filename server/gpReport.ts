@@ -1,12 +1,10 @@
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import express from 'express'
 import type { fetch } from 'undici'
 import type { UnifiedCheckin } from '../src/shared/checkin'
 import { getCheckins } from './checkinStore'
-import { SYNTHETIC_PATIENT_ID, countDistinctSymptomDays } from './checkinTransform'
-import { plural, summarize } from './gpReportSummary'
+import { SYNTHETIC_PATIENT_ID } from './checkinTransform'
+import { plural, templateSummary } from './gpReportSummary'
+import { demoData, seedDemoCheckins } from './demoData'
 
 // Demonstration values only, not clinical thresholds. The care team should set these.
 export const GP_REPORT_CONFIG = {
@@ -74,12 +72,13 @@ export function computeMetrics(data: PatientReportData, config: GpReportConfig =
 
   const periodCheckins = data.checkins.filter((checkin) => inPeriod(checkin.timestamp))
   const confirmed = periodCheckins.filter((checkin) => checkin.confirmationStatus === 'confirmed')
+  const observed = periodCheckins.filter(checkin => checkin.extractionStatus !== 'failed')
   const symptomLabels = new Map<string, string>()
-  confirmed.forEach((checkin) => checkin.observations
-    .filter((item) => item.category === 'symptom' && item.value.status !== 'denied')
+  observed.forEach((checkin) => checkin.observations
+    .filter((item) => item.category === 'symptom' && item.value.status === 'present')
     .forEach((item) => symptomLabels.set(item.code, String(item.value.label ?? item.code))))
 
-  const medicationReports = confirmed.flatMap((checkin) => checkin.observations
+  const medicationReports = observed.flatMap((checkin) => checkin.observations
     .filter((item) => item.category === 'medication_adherence')
     .map((item) => ({ date: dateOf(checkin.timestamp), state: String(item.value.state), evidence: item.evidence })))
 
@@ -104,9 +103,10 @@ export function computeMetrics(data: PatientReportData, config: GpReportConfig =
     },
     checkins: {
       confirmed: confirmed.length,
-      excludedUnconfirmed: periodCheckins.length - confirmed.length,
-      symptomDays: [...symptomLabels].map(([code, label]) => ({ code, label, days: countDistinctSymptomDays(confirmed, code) })),
-      reviewItems: confirmed
+      recorded: periodCheckins.length,
+      unconfirmed: periodCheckins.length - confirmed.length,
+      symptomDays: [...symptomLabels].map(([code, label]) => ({ code, label, days: new Set(observed.filter(checkin => checkin.observations.some(item => item.category === 'symptom' && item.code === code && item.value.status === 'present')).map(checkin => dateOf(checkin.timestamp))).size })),
+      reviewItems: observed
         .filter((checkin) => checkin.requiresHumanReview)
         .map((checkin) => ({
           date: dateOf(checkin.timestamp),
@@ -114,10 +114,8 @@ export function computeMetrics(data: PatientReportData, config: GpReportConfig =
         })),
       medicationReports,
     },
-    medicationMismatches: medicationReports
-      .filter((report) => (report.state === 'reported_taken' && dispenserByDate.get(report.date) === 'missed')
-        || (report.state === 'reported_missed' && dispenserByDate.get(report.date) === 'dispensed'))
-      .map((report) => ({ date: report.date, patientReport: report.state, dispenserStatus: dispenserByDate.get(report.date) })),
+    // Patient statements and dispensing are separate sources; neither verifies ingestion.
+    medicationMismatches: [] as { date: string; patientReport: string; dispenserStatus: string }[],
   }
 }
 
@@ -162,41 +160,49 @@ export function computeFlags(metrics: GpReportMetrics, config: GpReportConfig = 
   return flags
 }
 
-type SyntheticReportFile = {
-  period: ReportPeriod
-  patients: Omit<PatientReportData, 'period'>[]
+export function detectMissedClusters(events: DispenserEvent[]) {
+  const sorted = [...events].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+  const clusters: DispenserEvent[][] = []
+  let run: DispenserEvent[] = []
+  const flush = () => { if (run.length >= 3) clusters.push(run); run = [] }
+  for (const event of sorted) {
+    if (event.status !== 'missed') { flush(); continue }
+    if (run.length && dateOf(event.scheduledAt) !== addDays(dateOf(run[run.length - 1].scheduledAt), 1)) flush()
+    run.push(event)
+  }
+  flush()
+  return clusters
 }
 
-const dataPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'data', 'syntheticReportData.json')
-
-function loadPatientData(patientId: string): PatientReportData | null {
-  const file = JSON.parse(fs.readFileSync(dataPath, 'utf8')) as SyntheticReportFile
-  const patient = file.patients.find((item) => item.patientId === patientId)
+export async function buildGpReport(patientId: string, _options: { fetcher?: typeof fetch } = {}) {
+  const patient = demoData.patients.find(item => item.patientId === patientId)
   if (!patient) return null
-  const fixtureIds = new Set(patient.checkins.map((checkin) => checkin.id))
-  const stored = getCheckins(patientId).filter((checkin) => !fixtureIds.has(checkin.id))
-  return { ...patient, period: file.period, checkins: [...patient.checkins, ...stored] }
-}
-
-export async function buildGpReport(patientId: string, options: { fetcher?: typeof fetch } = {}) {
-  const data = loadPatientData(patientId)
-  if (!data) return null
+  seedDemoCheckins()
+  const checkins = getCheckins(patientId)
+  const data: PatientReportData = { ...patient, period: demoData.period, checkins }
   const metrics = computeMetrics(data)
   const flags = computeFlags(metrics)
-  const daily = listDates(data.period).map((date) => {
-    const reading = data.bloodPressure.find((item) => dateOf(item.timestamp) === date)
-    const dispense = data.dispenser.find((item) => dateOf(item.scheduledAt) === date)
+  const daily = listDates(data.period).map(date => {
+    const reading = patient.bloodPressure.find(item => dateOf(item.timestamp) === date)
+    const dispense = patient.dispenser.find(item => dateOf(item.scheduledAt) === date)
     return { date, systolic: reading?.systolic ?? null, diastolic: reading?.diastolic ?? null, dispenser: dispense?.status ?? null }
   })
+  const missedClusters = detectMissedClusters(patient.dispenser).map(events => {
+    const from = dateOf(events[0].scheduledAt)
+    const to = dateOf(events[events.length - 1].scheduledAt)
+    const beforeReadings = patient.bloodPressure.filter(item => dateOf(item.timestamp) >= addDays(from, -7) && dateOf(item.timestamp) < from)
+    const duringReadings = patient.bloodPressure.filter(item => dateOf(item.timestamp) >= from && dateOf(item.timestamp) <= to)
+    const before = average(beforeReadings.map(item => item.systolic))
+    const during = average(duringReadings.map(item => item.systolic))
+    return { from, to, count: events.length, events, beforeReadings, duringReadings, beforeAverageSystolic: before, duringAverageSystolic: during, higherBpDuringCluster: before !== null && during !== null && during - before >= GP_REPORT_CONFIG.risingTrendMmHg }
+  })
   return {
-    schemaVersion: 'gp-report.v1',
-    syntheticPatientId: patientId,
-    generatedAt: new Date().toISOString(),
-    config: GP_REPORT_CONFIG,
-    metrics,
-    flags,
-    daily,
-    summary: await summarize(metrics, flags, options.fetcher),
+    schemaVersion: 'gp-report.v1', syntheticPatientId: patientId, patientName: patient.name,
+    generatedAt: new Date().toISOString(), config: GP_REPORT_CONFIG, metrics, flags, daily,
+    dispensingAdherence: metrics.dispenser.scheduled ? Math.round(metrics.dispenser.dispensed / metrics.dispenser.scheduled * 1000) / 10 : null,
+    missedClusters, bloodPressure: patient.bloodPressure, dispenser: patient.dispenser, wearable: patient.wearable,
+    checkins, recentCheckins: checkins.filter(item => dateOf(item.timestamp) > data.period.to),
+    summary: { text: templateSummary(metrics, flags), source: 'template' as const },
   }
 }
 
@@ -216,3 +222,4 @@ gpReportRouter.get('/api/reports/gp', async (request, response) => {
     response.status(500).json({ error: { code: 'internal', message: 'Unexpected report failure' } })
   }
 })
+

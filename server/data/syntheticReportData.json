@@ -1,38 +1,345 @@
 {
-  "description": "Hand-written synthetic demonstration data for the GP report. Not real patient data.",
-  "period": { "from": "2026-09-18", "to": "2026-10-01" },
+  "description": "Synthetic school MVP data only. Dispenser releases do not verify ingestion. Evening schedule is 20:00 Europe/Amsterdam.",
+  "period": {
+    "from": "2026-09-01",
+    "to": "2026-09-30"
+  },
   "patients": [
     {
       "patientId": "synthetic-demo-patient",
       "bloodPressure": [
-        { "timestamp": "2026-09-18T08:00:00.000Z", "systolic": 132, "diastolic": 84 },
-        { "timestamp": "2026-09-19T08:00:00.000Z", "systolic": 135, "diastolic": 85 },
-        { "timestamp": "2026-09-20T08:00:00.000Z", "systolic": 130, "diastolic": 83 },
-        { "timestamp": "2026-09-22T08:00:00.000Z", "systolic": 136, "diastolic": 86 },
-        { "timestamp": "2026-09-23T08:00:00.000Z", "systolic": 138, "diastolic": 88 },
-        { "timestamp": "2026-09-24T08:00:00.000Z", "systolic": 134, "diastolic": 85 },
-        { "timestamp": "2026-09-25T08:00:00.000Z", "systolic": 141, "diastolic": 90 },
-        { "timestamp": "2026-09-26T08:00:00.000Z", "systolic": 143, "diastolic": 91 },
-        { "timestamp": "2026-09-28T08:00:00.000Z", "systolic": 145, "diastolic": 92 },
-        { "timestamp": "2026-09-29T08:00:00.000Z", "systolic": 139, "diastolic": 89 },
-        { "timestamp": "2026-09-30T08:00:00.000Z", "systolic": 146, "diastolic": 93 },
-        { "timestamp": "2026-10-01T08:00:00.000Z", "systolic": 144, "diastolic": 91 }
+        {
+          "timestamp": "2026-09-01T08:00:00.000Z",
+          "systolic": 128,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-02T08:00:00.000Z",
+          "systolic": 130,
+          "diastolic": 81
+        },
+        {
+          "timestamp": "2026-09-03T08:00:00.000Z",
+          "systolic": 127,
+          "diastolic": 79
+        },
+        {
+          "timestamp": "2026-09-04T08:00:00.000Z",
+          "systolic": 129,
+          "diastolic": 82
+        },
+        {
+          "timestamp": "2026-09-05T08:00:00.000Z",
+          "systolic": 131,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-06T08:00:00.000Z",
+          "systolic": 128,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-07T08:00:00.000Z",
+          "systolic": 130,
+          "diastolic": 81
+        },
+        {
+          "timestamp": "2026-09-08T08:00:00.000Z",
+          "systolic": 127,
+          "diastolic": 79
+        },
+        {
+          "timestamp": "2026-09-09T08:00:00.000Z",
+          "systolic": 129,
+          "diastolic": 82
+        },
+        {
+          "timestamp": "2026-09-10T08:00:00.000Z",
+          "systolic": 131,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-11T08:00:00.000Z",
+          "systolic": 128,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-12T08:00:00.000Z",
+          "systolic": 130,
+          "diastolic": 81
+        },
+        {
+          "timestamp": "2026-09-13T08:00:00.000Z",
+          "systolic": 127,
+          "diastolic": 79
+        },
+        {
+          "timestamp": "2026-09-14T08:00:00.000Z",
+          "systolic": 129,
+          "diastolic": 82
+        },
+        {
+          "timestamp": "2026-09-15T08:00:00.000Z",
+          "systolic": 131,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-16T08:00:00.000Z",
+          "systolic": 128,
+          "diastolic": 80
+        },
+        {
+          "timestamp": "2026-09-17T08:00:00.000Z",
+          "systolic": 130,
+          "diastolic": 81
+        },
+        {
+          "timestamp": "2026-09-18T08:00:00.000Z",
+          "systolic": 127,
+          "diastolic": 79
+        },
+        {
+          "timestamp": "2026-09-19T08:00:00.000Z",
+          "systolic": 145,
+          "diastolic": 92
+        },
+        {
+          "timestamp": "2026-09-20T08:00:00.000Z",
+          "systolic": 147,
+          "diastolic": 93
+        },
+        {
+          "timestamp": "2026-09-21T08:00:00.000Z",
+          "systolic": 144,
+          "diastolic": 91
+        },
+        {
+          "timestamp": "2026-09-22T08:00:00.000Z",
+          "systolic": 148,
+          "diastolic": 94
+        },
+        {
+          "timestamp": "2026-09-23T08:00:00.000Z",
+          "systolic": 146,
+          "diastolic": 92
+        },
+        {
+          "timestamp": "2026-09-24T08:00:00.000Z",
+          "systolic": 145,
+          "diastolic": 92
+        },
+        {
+          "timestamp": "2026-09-25T08:00:00.000Z",
+          "systolic": 147,
+          "diastolic": 93
+        },
+        {
+          "timestamp": "2026-09-26T08:00:00.000Z",
+          "systolic": 144,
+          "diastolic": 91
+        },
+        {
+          "timestamp": "2026-09-27T08:00:00.000Z",
+          "systolic": 148,
+          "diastolic": 94
+        },
+        {
+          "timestamp": "2026-09-28T08:00:00.000Z",
+          "systolic": 146,
+          "diastolic": 92
+        },
+        {
+          "timestamp": "2026-09-29T08:00:00.000Z",
+          "systolic": 145,
+          "diastolic": 92
+        },
+        {
+          "timestamp": "2026-09-30T08:00:00.000Z",
+          "systolic": 147,
+          "diastolic": 93
+        }
       ],
       "dispenser": [
-        { "scheduledAt": "2026-09-18T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-19T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-20T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-21T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "missed" },
-        { "scheduledAt": "2026-09-22T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-23T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-24T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-25T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-26T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-27T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "missed" },
-        { "scheduledAt": "2026-09-28T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-29T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "missed" },
-        { "scheduledAt": "2026-09-30T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-10-01T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" }
+        {
+          "id": "dispensing-01",
+          "scheduledAt": "2026-09-01T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-02",
+          "scheduledAt": "2026-09-02T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-03",
+          "scheduledAt": "2026-09-03T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-04",
+          "scheduledAt": "2026-09-04T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-05",
+          "scheduledAt": "2026-09-05T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-06",
+          "scheduledAt": "2026-09-06T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-07",
+          "scheduledAt": "2026-09-07T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "missed"
+        },
+        {
+          "id": "dispensing-08",
+          "scheduledAt": "2026-09-08T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-09",
+          "scheduledAt": "2026-09-09T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-10",
+          "scheduledAt": "2026-09-10T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-11",
+          "scheduledAt": "2026-09-11T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-12",
+          "scheduledAt": "2026-09-12T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-13",
+          "scheduledAt": "2026-09-13T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-14",
+          "scheduledAt": "2026-09-14T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-15",
+          "scheduledAt": "2026-09-15T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-16",
+          "scheduledAt": "2026-09-16T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-17",
+          "scheduledAt": "2026-09-17T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-18",
+          "scheduledAt": "2026-09-18T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "missed"
+        },
+        {
+          "id": "dispensing-19",
+          "scheduledAt": "2026-09-19T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "missed"
+        },
+        {
+          "id": "dispensing-20",
+          "scheduledAt": "2026-09-20T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "missed"
+        },
+        {
+          "id": "dispensing-21",
+          "scheduledAt": "2026-09-21T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-22",
+          "scheduledAt": "2026-09-22T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-23",
+          "scheduledAt": "2026-09-23T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-24",
+          "scheduledAt": "2026-09-24T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-25",
+          "scheduledAt": "2026-09-25T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-26",
+          "scheduledAt": "2026-09-26T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "missed"
+        },
+        {
+          "id": "dispensing-27",
+          "scheduledAt": "2026-09-27T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-28",
+          "scheduledAt": "2026-09-28T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-29",
+          "scheduledAt": "2026-09-29T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        },
+        {
+          "id": "dispensing-30",
+          "scheduledAt": "2026-09-30T18:00:00.000Z",
+          "medication": "Amlodipine 5 mg",
+          "status": "dispensed"
+        }
       ],
       "checkins": [
         {
@@ -42,12 +349,32 @@
           "timestamp": "2026-09-20T09:15:00.000Z",
           "inputSource": "microphone",
           "transcript": "Ik ben duizelig.",
-          "confirmationStatus": "confirmed",
+          "confirmationStatus": "unconfirmed",
           "requiresHumanReview": false,
           "observations": [
-            { "id": "synthetic-p1-checkin-1-obs-1", "category": "symptom", "code": "symptom.dizziness", "value": { "label": "dizziness", "status": "present" }, "evidence": "Ik ben duizelig." },
-            { "id": "synthetic-p1-checkin-1-obs-2", "category": "emotional_state", "code": "emotion.reported", "value": { "state": "not_stated", "polarity": "not_stated", "missing": true }, "evidence": null }
-          ]
+            {
+              "id": "synthetic-p1-checkin-1-obs-1",
+              "category": "symptom",
+              "code": "symptom.dizziness",
+              "value": {
+                "label": "dizziness",
+                "status": "present"
+              },
+              "evidence": "Ik ben duizelig."
+            },
+            {
+              "id": "synthetic-p1-checkin-1-obs-2",
+              "category": "emotional_state",
+              "code": "emotion.reported",
+              "value": {
+                "state": "not_stated",
+                "polarity": "not_stated",
+                "missing": true
+              },
+              "evidence": null
+            }
+          ],
+          "extractionStatus": "complete"
         },
         {
           "schemaVersion": "unified-checkin.v1",
@@ -56,12 +383,32 @@
           "timestamp": "2026-09-23T09:05:00.000Z",
           "inputSource": "microphone",
           "transcript": "Weer duizelig vandaag. Ik voel me goed verder.",
-          "confirmationStatus": "confirmed",
+          "confirmationStatus": "unconfirmed",
           "requiresHumanReview": false,
           "observations": [
-            { "id": "synthetic-p1-checkin-2-obs-1", "category": "symptom", "code": "symptom.dizziness", "value": { "label": "dizziness", "status": "present" }, "evidence": "Weer duizelig vandaag." },
-            { "id": "synthetic-p1-checkin-2-obs-2", "category": "emotional_state", "code": "emotion.reported", "value": { "state": "feeling good", "polarity": "positive", "missing": false }, "evidence": "Ik voel me goed" }
-          ]
+            {
+              "id": "synthetic-p1-checkin-2-obs-1",
+              "category": "symptom",
+              "code": "symptom.dizziness",
+              "value": {
+                "label": "dizziness",
+                "status": "present"
+              },
+              "evidence": "Weer duizelig vandaag."
+            },
+            {
+              "id": "synthetic-p1-checkin-2-obs-2",
+              "category": "emotional_state",
+              "code": "emotion.reported",
+              "value": {
+                "state": "feeling good",
+                "polarity": "positive",
+                "missing": false
+              },
+              "evidence": "Ik voel me goed"
+            }
+          ],
+          "extractionStatus": "complete"
         },
         {
           "schemaVersion": "unified-checkin.v1",
@@ -70,13 +417,43 @@
           "timestamp": "2026-09-29T20:30:00.000Z",
           "inputSource": "microphone",
           "transcript": "Nog steeds duizelig. Ik heb mijn tablet genomen.",
-          "confirmationStatus": "confirmed",
+          "confirmationStatus": "unconfirmed",
           "requiresHumanReview": false,
           "observations": [
-            { "id": "synthetic-p1-checkin-3-obs-1", "category": "symptom", "code": "symptom.dizziness", "value": { "label": "dizziness", "status": "present" }, "evidence": "Nog steeds duizelig." },
-            { "id": "synthetic-p1-checkin-3-obs-2", "category": "emotional_state", "code": "emotion.reported", "value": { "state": "not_stated", "polarity": "not_stated", "missing": true }, "evidence": null },
-            { "id": "synthetic-p1-checkin-3-obs-3", "category": "medication_adherence", "code": "medication.adherence.patient_report", "value": { "state": "reported_taken", "source": "patient_reported", "verifiedIngestion": false }, "evidence": "Ik heb mijn tablet genomen" }
-          ]
+            {
+              "id": "synthetic-p1-checkin-3-obs-1",
+              "category": "symptom",
+              "code": "symptom.dizziness",
+              "value": {
+                "label": "dizziness",
+                "status": "present"
+              },
+              "evidence": "Nog steeds duizelig."
+            },
+            {
+              "id": "synthetic-p1-checkin-3-obs-2",
+              "category": "emotional_state",
+              "code": "emotion.reported",
+              "value": {
+                "state": "not_stated",
+                "polarity": "not_stated",
+                "missing": true
+              },
+              "evidence": null
+            },
+            {
+              "id": "synthetic-p1-checkin-3-obs-3",
+              "category": "medication_adherence",
+              "code": "medication.adherence.patient_report",
+              "value": {
+                "state": "reported_taken",
+                "source": "patient_reported",
+                "verifiedIngestion": false
+              },
+              "evidence": "Ik heb mijn tablet genomen"
+            }
+          ],
+          "extractionStatus": "complete"
         },
         {
           "schemaVersion": "unified-checkin.v1",
@@ -85,93 +462,255 @@
           "timestamp": "2026-09-30T10:00:00.000Z",
           "inputSource": "microphone",
           "transcript": "Waar ben ik? Ik heb niemand meer.",
-          "confirmationStatus": "confirmed",
+          "confirmationStatus": "unconfirmed",
           "requiresHumanReview": true,
           "observations": [
-            { "id": "synthetic-p1-checkin-4-obs-1", "category": "emotional_state", "code": "emotion.reported", "value": { "state": "not_stated", "polarity": "not_stated", "missing": true }, "evidence": null },
-            { "id": "synthetic-p1-checkin-4-obs-2", "category": "context", "code": "context.possible_disorientation", "value": { "uncertain": true }, "evidence": "Waar ben ik?" },
-            { "id": "synthetic-p1-checkin-4-obs-3", "category": "context", "code": "context.social_isolation", "value": { "reported": true }, "evidence": "Ik heb niemand meer." }
-          ]
+            {
+              "id": "synthetic-p1-checkin-4-obs-1",
+              "category": "emotional_state",
+              "code": "emotion.reported",
+              "value": {
+                "state": "not_stated",
+                "polarity": "not_stated",
+                "missing": true
+              },
+              "evidence": null
+            },
+            {
+              "id": "synthetic-p1-checkin-4-obs-2",
+              "category": "context",
+              "code": "context.possible_disorientation",
+              "value": {
+                "uncertain": true
+              },
+              "evidence": "Waar ben ik?"
+            },
+            {
+              "id": "synthetic-p1-checkin-4-obs-3",
+              "category": "context",
+              "code": "context.social_isolation",
+              "value": {
+                "reported": true
+              },
+              "evidence": "Ik heb niemand meer."
+            }
+          ],
+          "extractionStatus": "complete"
+        }
+      ],
+      "wearable": [
+        {
+          "date": "2026-09-01",
+          "restingHeartRate": 69,
+          "sleepMinutes": 400,
+          "steps": 4510,
+          "activityMinutes": 23
         },
         {
-          "schemaVersion": "unified-checkin.v1",
-          "id": "synthetic-p1-checkin-5",
-          "syntheticPatientId": "synthetic-demo-patient",
-          "timestamp": "2026-10-01T09:00:00.000Z",
-          "inputSource": "pasted_text",
-          "transcript": "Ik heb hoofdpijn.",
-          "confirmationStatus": "unconfirmed",
-          "requiresHumanReview": false,
-          "observations": [
-            { "id": "synthetic-p1-checkin-5-obs-1", "category": "symptom", "code": "symptom.hoofdpijn", "value": { "label": "hoofdpijn", "status": "present" }, "evidence": "Ik heb hoofdpijn." }
-          ]
-        }
-      ]
-    },
-    {
-      "patientId": "synthetic-demo-patient-2",
-      "bloodPressure": [
-        { "timestamp": "2026-09-18T08:00:00.000Z", "systolic": 128, "diastolic": 80 },
-        { "timestamp": "2026-09-19T08:00:00.000Z", "systolic": 126, "diastolic": 79 },
-        { "timestamp": "2026-09-20T08:00:00.000Z", "systolic": 129, "diastolic": 81 },
-        { "timestamp": "2026-09-21T08:00:00.000Z", "systolic": 127, "diastolic": 80 },
-        { "timestamp": "2026-09-22T08:00:00.000Z", "systolic": 130, "diastolic": 82 },
-        { "timestamp": "2026-09-23T08:00:00.000Z", "systolic": 125, "diastolic": 78 },
-        { "timestamp": "2026-09-24T08:00:00.000Z", "systolic": 128, "diastolic": 80 },
-        { "timestamp": "2026-09-25T08:00:00.000Z", "systolic": 129, "diastolic": 81 },
-        { "timestamp": "2026-09-26T08:00:00.000Z", "systolic": 126, "diastolic": 79 },
-        { "timestamp": "2026-09-27T08:00:00.000Z", "systolic": 128, "diastolic": 80 },
-        { "timestamp": "2026-09-28T08:00:00.000Z", "systolic": 131, "diastolic": 82 },
-        { "timestamp": "2026-09-29T08:00:00.000Z", "systolic": 127, "diastolic": 79 },
-        { "timestamp": "2026-09-30T08:00:00.000Z", "systolic": 129, "diastolic": 81 },
-        { "timestamp": "2026-10-01T08:00:00.000Z", "systolic": 128, "diastolic": 80 }
-      ],
-      "dispenser": [
-        { "scheduledAt": "2026-09-18T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-19T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-20T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-21T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-22T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-23T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-24T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-25T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-26T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-27T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-28T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-29T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-09-30T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" },
-        { "scheduledAt": "2026-10-01T20:00:00.000Z", "medication": "Amlodipine 5 mg", "status": "dispensed" }
-      ],
-      "checkins": [
-        {
-          "schemaVersion": "unified-checkin.v1",
-          "id": "synthetic-p2-checkin-1",
-          "syntheticPatientId": "synthetic-demo-patient-2",
-          "timestamp": "2026-09-22T09:30:00.000Z",
-          "inputSource": "microphone",
-          "transcript": "I feel good.",
-          "confirmationStatus": "confirmed",
-          "requiresHumanReview": false,
-          "observations": [
-            { "id": "synthetic-p2-checkin-1-obs-1", "category": "emotional_state", "code": "emotion.reported", "value": { "state": "feeling good", "polarity": "positive", "missing": false }, "evidence": "I feel good." }
-          ]
+          "date": "2026-09-02",
+          "restingHeartRate": 70,
+          "sleepMinutes": 410,
+          "steps": 4820,
+          "activityMinutes": 26
         },
         {
-          "schemaVersion": "unified-checkin.v1",
-          "id": "synthetic-p2-checkin-2",
-          "syntheticPatientId": "synthetic-demo-patient-2",
-          "timestamp": "2026-09-28T09:30:00.000Z",
-          "inputSource": "microphone",
-          "transcript": "My neck hurts. I took my medication.",
-          "confirmationStatus": "confirmed",
-          "requiresHumanReview": false,
-          "observations": [
-            { "id": "synthetic-p2-checkin-2-obs-1", "category": "symptom", "code": "symptom.neck_pain", "value": { "label": "neck pain", "status": "present" }, "evidence": "My neck hurts." },
-            { "id": "synthetic-p2-checkin-2-obs-2", "category": "emotional_state", "code": "emotion.reported", "value": { "state": "not_stated", "polarity": "not_stated", "missing": true }, "evidence": null },
-            { "id": "synthetic-p2-checkin-2-obs-3", "category": "medication_adherence", "code": "medication.adherence.patient_report", "value": { "state": "reported_taken", "source": "patient_reported", "verifiedIngestion": false }, "evidence": "I took my medication" }
-          ]
+          "date": "2026-09-03",
+          "restingHeartRate": 71,
+          "sleepMinutes": 420,
+          "steps": 5130,
+          "activityMinutes": 29
+        },
+        {
+          "date": "2026-09-04",
+          "restingHeartRate": 72,
+          "sleepMinutes": 390,
+          "steps": 5440,
+          "activityMinutes": 32
+        },
+        {
+          "date": "2026-09-05",
+          "restingHeartRate": 68,
+          "sleepMinutes": 400,
+          "steps": 5750,
+          "activityMinutes": 35
+        },
+        {
+          "date": "2026-09-06",
+          "restingHeartRate": 69,
+          "sleepMinutes": 410,
+          "steps": 6060,
+          "activityMinutes": 20
+        },
+        {
+          "date": "2026-09-07",
+          "restingHeartRate": 70,
+          "sleepMinutes": 420,
+          "steps": 4200,
+          "activityMinutes": 23
+        },
+        {
+          "date": "2026-09-08",
+          "restingHeartRate": 71,
+          "sleepMinutes": 390,
+          "steps": 4510,
+          "activityMinutes": 26
+        },
+        {
+          "date": "2026-09-09",
+          "restingHeartRate": 72,
+          "sleepMinutes": 400,
+          "steps": 4820,
+          "activityMinutes": 29
+        },
+        {
+          "date": "2026-09-10",
+          "restingHeartRate": 68,
+          "sleepMinutes": 410,
+          "steps": 5130,
+          "activityMinutes": 32
+        },
+        {
+          "date": "2026-09-11",
+          "restingHeartRate": 69,
+          "sleepMinutes": 420,
+          "steps": 5440,
+          "activityMinutes": 35
+        },
+        {
+          "date": "2026-09-12",
+          "restingHeartRate": 70,
+          "sleepMinutes": 390,
+          "steps": 5750,
+          "activityMinutes": 20
+        },
+        {
+          "date": "2026-09-13",
+          "restingHeartRate": 71,
+          "sleepMinutes": 400,
+          "steps": 6060,
+          "activityMinutes": 23
+        },
+        {
+          "date": "2026-09-14",
+          "restingHeartRate": 72,
+          "sleepMinutes": 410,
+          "steps": 4200,
+          "activityMinutes": 26
+        },
+        {
+          "date": "2026-09-15",
+          "restingHeartRate": 68,
+          "sleepMinutes": 420,
+          "steps": 4510,
+          "activityMinutes": 29
+        },
+        {
+          "date": "2026-09-16",
+          "restingHeartRate": 69,
+          "sleepMinutes": 390,
+          "steps": 4820,
+          "activityMinutes": 32
+        },
+        {
+          "date": "2026-09-17",
+          "restingHeartRate": 70,
+          "sleepMinutes": 400,
+          "steps": 5130,
+          "activityMinutes": 35
+        },
+        {
+          "date": "2026-09-18",
+          "restingHeartRate": 71,
+          "sleepMinutes": 410,
+          "steps": 5440,
+          "activityMinutes": 20
+        },
+        {
+          "date": "2026-09-19",
+          "restingHeartRate": 72,
+          "sleepMinutes": 420,
+          "steps": 5750,
+          "activityMinutes": 23
+        },
+        {
+          "date": "2026-09-20",
+          "restingHeartRate": 68,
+          "sleepMinutes": 390,
+          "steps": 6060,
+          "activityMinutes": 26
+        },
+        {
+          "date": "2026-09-21",
+          "restingHeartRate": 69,
+          "sleepMinutes": 400,
+          "steps": 4200,
+          "activityMinutes": 29
+        },
+        {
+          "date": "2026-09-22",
+          "restingHeartRate": 70,
+          "sleepMinutes": 410,
+          "steps": 4510,
+          "activityMinutes": 32
+        },
+        {
+          "date": "2026-09-23",
+          "restingHeartRate": 71,
+          "sleepMinutes": 420,
+          "steps": 4820,
+          "activityMinutes": 35
+        },
+        {
+          "date": "2026-09-24",
+          "restingHeartRate": 72,
+          "sleepMinutes": 390,
+          "steps": 5130,
+          "activityMinutes": 20
+        },
+        {
+          "date": "2026-09-25",
+          "restingHeartRate": 68,
+          "sleepMinutes": 400,
+          "steps": 5440,
+          "activityMinutes": 23
+        },
+        {
+          "date": "2026-09-26",
+          "restingHeartRate": 69,
+          "sleepMinutes": 410,
+          "steps": 5750,
+          "activityMinutes": 26
+        },
+        {
+          "date": "2026-09-27",
+          "restingHeartRate": 70,
+          "sleepMinutes": 420,
+          "steps": 6060,
+          "activityMinutes": 29
+        },
+        {
+          "date": "2026-09-28",
+          "restingHeartRate": 71,
+          "sleepMinutes": 390,
+          "steps": 4200,
+          "activityMinutes": 32
+        },
+        {
+          "date": "2026-09-29",
+          "restingHeartRate": 72,
+          "sleepMinutes": 400,
+          "steps": 4510,
+          "activityMinutes": 35
+        },
+        {
+          "date": "2026-09-30",
+          "restingHeartRate": 68,
+          "sleepMinutes": 380,
+          "steps": 5840,
+          "activityMinutes": 34
         }
-      ]
+      ],
+      "name": "Elena"
     }
   ]
 }

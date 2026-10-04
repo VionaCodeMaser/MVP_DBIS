@@ -74,6 +74,7 @@ export function transformAnalysisToCheckin(options: {
     transcript,
     confirmationStatus: options.confirmationStatus || 'unconfirmed',
     requiresHumanReview: analysis.requiresHumanReview,
+    extractionStatus: 'complete',
     observations,
   }
 }
@@ -86,4 +87,9 @@ export function countDistinctSymptomDays(checkins: UnifiedCheckin[], symptomCode
         .filter((item) => item.category === 'symptom' && item.code === symptomCode && item.value.status !== 'denied')
         .map(() => checkin.timestamp.slice(0, 10))),
   ).size
+}
+
+
+export function createCapturedCheckin(options: { transcript: string; inputSource: CheckinInputSource; timestamp?: string; syntheticPatientId?: string }): UnifiedCheckin {
+  return { schemaVersion: 'unified-checkin.v1', id: randomUUID(), syntheticPatientId: options.syntheticPatientId || SYNTHETIC_PATIENT_ID, timestamp: options.timestamp || new Date().toISOString(), inputSource: options.inputSource, transcript: options.transcript, confirmationStatus: 'unconfirmed', extractionStatus: 'failed', requiresHumanReview: false, observations: [] }
 }

@@ -1,65 +1,19 @@
-# Unified check-in format
+# Unified check-in contract
 
-The unified check-in is the integration contract for future monitoring, medication-adherence, and GP-report modules.
+The watch, AI Insights and GP overview use `UnifiedCheckin` from `src/shared/checkin.ts`. `server/checkinTransform.ts` is the only analysis-to-observation transformation.
 
-## Retrieval
+A record has `schemaVersion`, `id`, `syntheticPatientId`, `timestamp`, `inputSource`, original `transcript`, `confirmationStatus`, `requiresHumanReview` and `observations`. Each observation retains its category, stable code, structured value and original transcript evidence.
 
-```text
-GET /api/checkins?patientId=synthetic-demo-patient
-```
+`confirmationStatus` is `unconfirmed` for the automatic watch journey: the patient did not review or confirm AI interpretation. Existing explicitly confirmed records remain compatible. “Message captured” only acknowledges the recording.
 
-A confirmed check-in is created with:
+`extractionStatus` is optionally `complete` or `failed` (legacy records can omit it). On failed extraction, the transcript is retained with no observations and unconfirmed status. It is not an invented empty successful analysis.
 
-```text
-POST /api/checkins
-Content-Type: application/json
-```
+## Endpoints
 
-The request contains `transcript`, the validated V4 `analysis`, `inputSource` (`microphone` or `pasted_text`), and `confirmationStatus: "confirmed"`.
+- `GET /api/demo`: shared 30-day synthetic patient dataset.
+- `POST /api/checkins/analyze`: validates the transcript and returns Ollama V4 analysis.
+- `POST /api/checkins`: accepts transcript, V4 analysis, source, optional timestamp and patient ID, and confirmed/unconfirmed status. Successful analysis goes through the existing transformer. For capture-only failure, omit analysis and supply `extractionStatus: "failed"`.
+- `GET /api/checkins?patientId=synthetic-demo-patient`: unified records from the in-memory store.
+- `GET /api/reports/gp?patientId=synthetic-demo-patient`: calculated objective report plus the same unified records. Captures outside September are displayed separately with real timestamps.
 
-## Output
-
-```json
-{
-  "schemaVersion": "unified-checkin.v1",
-  "id": "check-in-id",
-  "syntheticPatientId": "synthetic-demo-patient",
-  "timestamp": "2026-09-24T12:00:00.000Z",
-  "inputSource": "pasted_text",
-  "transcript": "Ik ben duizelig.",
-  "confirmationStatus": "confirmed",
-  "requiresHumanReview": false,
-  "observations": [
-    {
-      "id": "observation-id",
-      "category": "symptom",
-      "code": "symptom.dizziness",
-      "value": { "label": "dizziness", "status": "present" },
-      "evidence": "Ik ben duizelig."
-    },
-    {
-      "id": "observation-id-2",
-      "category": "medication_adherence",
-      "code": "medication.adherence.patient_report",
-      "value": {
-        "state": "not_mentioned",
-        "source": "patient_reported",
-        "missing": true,
-        "verifiedIngestion": false
-      },
-      "evidence": null
-    }
-  ]
-}
-```
-
-## Rules
-
-- One recording produces one parent check-in with zero or more observations.
-- Observation codes are stable integration identifiers; labels can remain human-readable.
-- Evidence is the exact source transcript substring when present.
-- `denied` is an explicit symptom observation. `not_mentioned` is missing medication information, not a denial.
-- `patient_reported` adherence is distinct from future dispenser events and does not mean ingestion was verified.
-- Only `confirmationStatus: "confirmed"` records should feed confirmed daily-log or GP-report views.
-- `requiresHumanReview` is a clarification flag, not a diagnosis, triage result, or notification trigger.
-- The current prototype store is in memory because no database implementation exists in this repository. Replace `server/checkinStore.ts` with the project database adapter when one is introduced; keep the contract unchanged.
+Symptom present/resolved/denied states and medication reported_taken/reported_missed/reported_not_yet_taken/uncertain states are preserved. Dispensing releases do not verify ingestion; patient statements are not matched to a dose solely by calendar date.
