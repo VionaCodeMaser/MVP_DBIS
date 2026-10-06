@@ -1,32 +1,110 @@
-# PulseNote — 
+# PulseNote — school MVP
 
-Synthetic data only. One elderly patient uses a smartwatch interface; Whisper transcribes the message, Ollama extracts validated observations, and the same unified record reaches a GP overview. No real devices, diagnosis, authentication or permanent database.
+## For lecturers and examiners
 
-## Run locally
+PulseNote demonstrates one connected journey: a fictional patient's smartwatch message becomes structured observations, and the GP sees those same records alongside synthetic blood-pressure, dispensing and wearable data.
 
-Requires Node.js 20+ and npm. For actual extraction, install Ollama and pull the model:
+**Current availability:** the local live Ollama version and the GP dashboard work. The three selectable example replays and hosted examiner link are planned, but are not implemented yet. There is no replay command or deployed URL to use at this stage.
+
+| Route | Requirements | Current availability |
+| --- | --- | --- |
+| Live extraction | Node.js 20+, npm, Git (or download ZIP), Ollama with qwen3:4b; microphone optional | Available locally |
+| GP dashboard only | Node.js 20+ and npm; no Ollama | Available locally with synthetic fixture check-ins |
+| Three example replays | No Ollama; the future hosted version will require only a browser | Pending implementation and deployment |
+
+All data and statements used for assessment must be synthetic.
+
+### Option A — run the full MVP with Ollama
+
+1. Install [Node.js](https://nodejs.org/) and [Ollama](https://ollama.com/download).
+2. Clone this repository, or download and extract its ZIP. Open a terminal in the project folder:
 
 ```sh
+git clone https://github.com/VionaCodeMaser/MVP_DBIS.git
+cd MVP_DBIS
 npm ci
 ollama pull qwen3:4b
+```
+
+3. Start Ollama if its installed application is not already running. In a separate terminal:
+
+```sh
 ollama serve
+```
+
+Keep that terminal running. If Ollama reports that its port is already occupied, it may already be running; do not launch a second copy.
+
+4. In the project terminal:
+
+```sh
 npm run dev
 ```
 
-Open http://127.0.0.1:5173 for the watch and AI Insights, and http://127.0.0.1:5173/report.html for the GP page. If Ollama is already running, omit `ollama serve`. Configure `OLLAMA_URL`, `OLLAMA_MODEL` and `OLLAMA_TIMEOUT_MS` as environment variables if needed.
+5. Open the URLs printed by the server (normally):
+   - Smartwatch and AI Insights: http://127.0.0.1:5173
+   - GP overview: http://127.0.0.1:5173/report.html
 
-Whisper downloads Xenova/whisper-base in the browser on first use and caches it. The first transcription can take time and requires network access to its model assets. Microphone access requires localhost or HTTPS and permission. This school demo is intended for fictional statements only.
+6. For a microphone-free assessment, expand **Developer demo input** beneath AI Insights and submit: "My neck hurts. I haven't taken my meds yet." This uses actual Ollama extraction, not a replay.
+7. Alternatively, select Voice, permit microphone access, record a synthetic statement and stop. Whisper transcribes in the browser; Ollama then extracts observations.
+8. Inspect AI Insights and View details, then open or refresh the GP overview. Check that the captured record has the same ID and original evidence. The interpretation is explicitly unconfirmed.
+9. On the GP page, inspect 83.3% dispensing adherence, the BP chart and **Why? See the actual records**. New captures outside September appear separately with their real dates.
 
-## Pitch journey
+Whisper downloads its browser model on first use, which requires internet access and can take time. Live voice needs microphone permission on localhost or HTTPS. Typed developer input bypasses microphone and Whisper, but still requires Ollama.
 
-1. Show the watch overview, switch between heart rate, sleep, activity and steps. The snapshot is September 30 and uses the exact same wearable records as the GP page.
-2. Open Voice, record a short synthetic statement, and stop. The patient sees “Message captured”; they do not see JSON or approve an AI classification.
-3. Watch the actual extraction appear in AI Insights. The backend saves it as `unconfirmed`, preserving transcript, evidence, source, timestamp and observation statuses. Details are expandable outside the patient interface.
-4. Open the GP overview or press Refresh. The newly recorded check-in appears with the same backend record ID. Actual captures after September are explicitly outside the historical reporting period; they are not backdated or mixed into September calculations.
-5. Show 83.3% dispensing adherence (25/30), the BP chart, and the September 18–20 cluster. Open Why? to see the event IDs and BP comparison records.
-6. Acknowledge the medication reminder. It changes only the watch acknowledgement; it never changes dispensing adherence or verifies ingestion.
+### Option B — inspect the GP dashboard without Ollama now
 
-Developer demo input is tucked below AI Insights. It sends synthetic text through the real Ollama and save endpoints, allowing the same journey without microphone hardware. It does not produce canned successful AI output.
+After cloning or downloading the project, run:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open http://127.0.0.1:5173/report.html. The dashboard calculations, BP chart, Why? evidence, wearable values and existing synthetic fixture check-ins do not require Ollama.
+
+**This is not yet interactive example replay.** Submitting new text without Ollama retains the transcript as a failed-extraction record with no observations; it does not simulate successful AI extraction.
+
+### Option C — three example replays (planned examiner route)
+
+When the replay feature is implemented and verified, lecturers will be able to:
+
+1. Open the published examiner link, or start the local version using the standard setup above.
+2. Select **Example replay**.
+3. Choose one of three synthetic transcript examples.
+4. Inspect the saved, validated extraction in AI Insights.
+5. Add that example as an unconfirmed unified record to the demo session.
+6. Open the GP overview and inspect the same record, alongside calculated objective data.
+7. Click Why? to verify the dispensing and BP findings.
+
+The interface must label this route **"Precomputed example — no live AI extraction."** It demonstrates replay of an earlier real Ollama extraction, not a new inference request. A working local live version remains available under Option A.
+
+No hosted link is published yet. This section describes the intended examiner workflow, not an available feature.
+
+## Steps to implement example replay
+
+1. Finalize these synthetic examples:
+   - Symptoms and medication: "My neck hurts. I haven't taken my meds yet."
+   - Medication uncertainty: "I'm not sure whether I took my tablet."
+   - Context for clarification: "Where am I? I have nobody anymore."
+2. On a team machine with Ollama running, pass each exact transcript through the existing validated analysis pipeline. Save the actual returned V4 analysis, exact transcript, capture date, model identity and provenance. Review evidence substrings and expected states; do not fabricate successful model outputs.
+3. Add a capture script to reproduce/update these fixtures. Fail explicitly if Ollama or validation fails.
+4. Add three clearly labeled replay choices. Selecting an example must bypass Whisper and live inference and use only that example's saved validated output.
+5. Use the existing check-in transformer and unified record contract. Keep replay interpretation unconfirmed and retain provenance explaining that it is precomputed.
+6. Make AI Insights and the GP retrieve the same session record. For an online demo, isolate each examiner's replay session so simultaneous visitors do not mix records.
+7. Retain actual session timestamps and explicitly separate captures outside the historical September report. Dispensing adherence must still come only from the shared dispenser dataset.
+8. Test replay with Ollama stopped: all three choices, evidence details, matching record IDs, GP appearance, refresh behavior and reset. Verify that no inference request is made. Also verify that live mode still works.
+9. Build and deploy the replay demo with the required backend, or implement a deliberate static replay adapter that preserves the same record contract and calculations. Publishing only the current frontend will not work: it depends on API endpoints. Do not bundle a fake successful live analysis or require access to a team member's laptop.
+10. Replace the pending labels above with verified run instructions and the actual examiner URL. Add a short video of the live voice → Whisper → Ollama journey as supplementary evidence.
+
+## Troubleshooting
+
+- Windows EPERM for esbuild.exe: stop this project's running dev server with Ctrl+C before retrying npm ci.
+- Wrong or older interface: inspect git status and local edits. Preserve local work before switching to main; restart the server in the correct folder and hard-refresh the browser.
+- Missing model: run ollama pull qwen3:4b.
+- Ollama unavailable: keep its app/service running. The GP dashboard still works, but live extraction cannot succeed.
+- Server port occupied: stop the previous server for this project or configure a different PORT; use the URL printed by the server.
+- In-memory records reset on server restart. Fixture check-ins are reseeded; new captures are not permanently stored.
+
 
 ## Shared data and calculations
 
