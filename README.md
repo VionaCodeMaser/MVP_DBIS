@@ -1,4 +1,4 @@
-# PulseNote — connected school MVP
+# PulseNote — 
 
 Synthetic data only. One elderly patient uses a smartwatch interface; Whisper transcribes the message, Ollama extracts validated observations, and the same unified record reaches a GP overview. No real devices, diagnosis, authentication or permanent database.
 
