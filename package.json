@@ -6,8 +6,13 @@
   "scripts": {
     "dev": "tsx server/index.ts",
     "build": "tsc && vite build",
-    "preview": "NODE_ENV=production tsx server/index.ts",
-    "test:analysis": "vitest run"
+    "preview": "node scripts/start.mjs",
+    "test:analysis": "vitest run",
+    "dev:replay": "vite --mode replay --host 127.0.0.1 --port 5173 --strictPort",
+    "build:replay": "tsc && vite build --mode replay",
+    "preview:replay": "vite preview --host 127.0.0.1 --port 5173 --strictPort",
+    "capture:replays": "tsx scripts/capture-replays.ts",
+    "demo:replay": "node scripts/demo-replay.mjs"
   },
   "dependencies": {
     "@xenova/transformers": "^2.17.2",

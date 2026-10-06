@@ -86,6 +86,7 @@ export type UnifiedCheckin = {
   confirmationStatus: ConfirmationStatus
   requiresHumanReview: boolean
   extractionStatus?: 'complete' | 'failed'
+  provenance?: { mode: 'example_replay'; exampleId: string; origin: 'curated' | 'ollama_capture'; model?: string; capturedAt?: string; modelDigest?: string; pipeline: string }
   observations: CheckinObservation[]
 }
 

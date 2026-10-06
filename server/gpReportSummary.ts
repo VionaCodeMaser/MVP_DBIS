@@ -7,22 +7,8 @@ export type ReportSummary = { text: string; source: 'llm' | 'template' }
 const SUMMARY_PROMPT = `Write 3-5 plain English sentences for a GP, summarizing only the figures and flags in the JSON you receive.
 The data is synthetic. Do not diagnose, assess urgency, or give treatment or medication advice. Do not add numbers that are not in the JSON.`
 
-export function plural(count: number, singular: string, pluralForm = `${singular}s`) {
-  return `${count} ${count === 1 ? singular : pluralForm}`
-}
-
-export function templateSummary(metrics: GpReportMetrics, flags: ReportFlag[]) {
-  const bp = metrics.bloodPressure
-  const dispenser = metrics.dispenser
-  return [
-    bp.readings
-      ? `${plural(bp.readings, 'blood pressure reading')} over ${metrics.period.days} days, average ${bp.averageSystolic}/${bp.averageDiastolic} mmHg.`
-      : 'No blood pressure readings in this period.',
-    `Dispenser: ${dispenser.dispensed} of ${dispenser.scheduled} doses dispensed, ${dispenser.missed} missed.`,
-    `${plural(metrics.checkins.confirmed, 'confirmed check-in')}.`,
-    flags.length ? `${plural(flags.length, 'flag')} raised, listed below.` : 'No flags raised.',
-  ].join(' ')
-}
+import { templateSummary } from '../src/shared/reportSummary'
+export { plural, templateSummary } from '../src/shared/reportSummary'
 
 export async function summarize(metrics: GpReportMetrics, flags: ReportFlag[], fetcher: typeof fetch = fetch): Promise<ReportSummary> {
   const controller = new AbortController()
@@ -55,3 +41,4 @@ export async function summarize(metrics: GpReportMetrics, flags: ReportFlag[], f
     clearTimeout(timeout)
   }
 }
+

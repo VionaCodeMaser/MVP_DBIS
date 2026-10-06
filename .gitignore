@@ -6,3 +6,6 @@ dist/
 *.log
 # macOS custom folder icon files ("Icon\r")
 Icon?
+
+
+!.env.replay

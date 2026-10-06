@@ -17,3 +17,11 @@ A record has `schemaVersion`, `id`, `syntheticPatientId`, `timestamp`, `inputSou
 - `GET /api/reports/gp?patientId=synthetic-demo-patient`: calculated objective report plus the same unified records. Captures outside September are displayed separately with real timestamps.
 
 Symptom present/resolved/denied states and medication reported_taken/reported_missed/reported_not_yet_taken/uncertain states are preserved. Dispensing releases do not verify ingestion; patient statements are not matched to a dose solely by calendar date.
+
+## Example replay
+
+The analysis transformer now lives in `src/shared/checkinTransform.ts`; `server/checkinTransform.ts` re-exports it for existing live imports. There is still only one transformation implementation. Deterministic GP calculations likewise live in `src/shared/gpReport.ts` and are called by both the server and browser replay adapter.
+
+Replay records preserve the existing unified fields and add optional `provenance`: `mode: "example_replay"`, example ID, origin (`curated` or `ollama_capture`), pipeline description and, for captured model output, model/digest/capture timestamp. `timestamp` remains the current session-addition time; `capturedAt` describes the prior model run. Replay records use `pasted_text` because no microphone was used, and remain unconfirmed.
+
+The replay adapter is deliberately static and tab-local. It makes no API or inference request and is not described as backend saving. Both AI Insights and the GP retrieve the same serialized session record. Existing live mode continues to use the backend store and endpoints.

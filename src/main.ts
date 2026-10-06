@@ -1,13 +1,16 @@
 import './style.css'
 import type { UnifiedCheckin } from './shared/checkin'
-import type { demoData } from '../server/demoData'
+import type { DemoData } from './shared/demo'
+import { getDemo, examples, session, isReplay, pageUrl, modeBanner, jsonRequest } from './demoClient'
+import { replayLabel } from './shared/replay'
 
-type Demo = typeof demoData
+type Demo = DemoData
 const app = document.querySelector<HTMLDivElement>('#app')!
 const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))
 app.innerHTML = `
 <div class="demo-shell">
-  <header class="demo-header"><a class="brand" href="/">Pulse<span>Note</span><small>SCHOOL MVP · SYNTHETIC DATA</small></a><a class="gp-link" href="/report.html">Open GP overview ↗</a></header>
+  <header class="demo-header"><a class="brand" href="${pageUrl('')}">Pulse<span>Note</span><small>SCHOOL MVP · SYNTHETIC DATA</small></a><a class="gp-link" href="${pageUrl('report.html')}">Open GP overview ↗</a></header>
+  ${modeBanner()}
   <div class="pitch-grid">
     <section class="patient-side" aria-label="Smartwatch patient interface">
       <p class="eyebrow">01 / PATIENT EXPERIENCE</p><h1>A small check-in.<br>A clearer picture.</h1>
@@ -18,7 +21,7 @@ app.innerHTML = `
         <section id="medicationScreen" class="medication-screen" hidden><div class="watch-status"><span>20:00</span><span>♥</span></div><div class="pill-stage" aria-hidden="true"><div class="pill-3d"><span class="pill-half pill-coral"></span><span class="pill-half pill-cream"></span><i></i></div></div><h2>Amlodipine <small>5 mg</small></h2><div class="medication-time">Today · 20:00</div><button class="taken-button" id="acknowledge">Got it</button><p id="ackMessage" aria-live="polite"></p><button class="back-home" id="backHome" aria-label="Back to overview">⌂</button></section>
       </div></div></main><p class="watch-caption" id="wearableDate">Loading shared wearable data…</p>
     </section>
-    <section class="insights-side" aria-labelledby="insightsTitle"><p class="eyebrow">02 / STRUCTURED UNDERSTANDING</p><div class="insights-heading"><h2 id="insightsTitle">AI Insights</h2><span class="status-pill" id="pipelineStatus">Ready</span></div><p class="section-intro">Patient words become observations, with their original evidence kept alongside them.</p><div class="pipeline-strip"><span>Voice</span><b>→</b><span>Whisper</span><b>→</b><span>Ollama</span><b>→</b><span>Shared record</span></div><div id="insightCards" class="insight-grid" aria-live="polite"><div class="empty-insights"><span>✦</span><h3>Every voice matters.</h3><p>Record a synthetic check-in to see the actual extraction here.</p></div></div><p id="saveStatus" class="save-status" aria-live="polite"></p><div id="recordDetails"></div><details class="developer-details"><summary>Developer demo input</summary><p>Use synthetic text to test the same extraction and save flow without a microphone.</p><textarea id="demoText" aria-label="Synthetic check-in text" placeholder="My neck hurts, I haven’t taken my meds."></textarea><button id="submitText">Process synthetic text</button></details></section>
+    <section class="insights-side" aria-labelledby="insightsTitle"><p class="eyebrow">02 / STRUCTURED UNDERSTANDING</p><div class="insights-heading"><h2 id="insightsTitle">AI Insights</h2><span class="status-pill" id="pipelineStatus">Ready</span></div><p class="section-intro">Patient words become observations, with their original evidence kept alongside them.</p><div class="pipeline-strip">${isReplay?'<span>Example</span><b>→</b><span>Saved observations</span><b>→</b><span>Shared record</span>':'<span>Voice</span><b>→</b><span>Whisper</span><b>→</b><span>Ollama</span><b>→</b><span>Shared record</span>'}</div><div id="insightCards" class="insight-grid" aria-live="polite"><div class="empty-insights"><span>✦</span><h3>Every voice matters.</h3><p>${isReplay?'Choose an example below to see its saved observations.':'Record a synthetic check-in to see the actual extraction here.'}</p></div></div><div id="replayChoices"></div><p id="saveStatus" class="save-status" aria-live="polite"></p><div id="recordDetails"></div><details class="developer-details"><summary>Developer demo input</summary><p>Use synthetic text to test the same extraction and save flow without a microphone.</p><textarea id="demoText" aria-label="Synthetic check-in text" placeholder="My neck hurts, I haven’t taken my meds."></textarea><button id="submitText">Process synthetic text</button></details></section>
   </div><footer class="demo-footer">One fictional patient. One shared dataset. Patient statements remain separate from BP and dispenser records.</footer>
 </div>`
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
@@ -68,13 +71,7 @@ function renderInsights(record: UnifiedCheckin) {
   }).join('')
   $('insightCards').innerHTML = record.extractionStatus === 'failed' ? '<div class="empty-insights"><h3>Extraction unavailable</h3><p>The transcript was retained. No observations were invented.</p></div>' : cards || '<div class="empty-insights"><h3>No observations extracted</h3><p>The message is retained in the shared record.</p></div>'
   if (record.requiresHumanReview) $('insightCards').insertAdjacentHTML('beforeend', '<article class="review-card">◇ Review suggested <p>Context needs clarification; this is not a triage result.</p></article>')
-  $('recordDetails').innerHTML = `<details class="developer-details"><summary>View details</summary><p><strong>Transcript</strong></p><blockquote>${esc(record.transcript)}</blockquote><p>Captured ${esc(new Date(record.timestamp).toLocaleString())} · ${esc(record.inputSource)} · AI interpretation ${esc(record.confirmationStatus)}</p><ul>${record.observations.filter(o=>o.evidence).map(o=>`<li>${esc(o.code)}: “${esc(o.evidence)}”</li>`).join('')}</ul><details><summary>Raw unified record</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></details>`
-}
-async function jsonRequest(url: string, options?: RequestInit) {
-  const response = await fetch(url, options)
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.error?.message || 'Request failed')
-  return data
+  $('recordDetails').innerHTML = `<details class="developer-details"><summary>View details</summary><p><strong>Transcript</strong></p><blockquote>${esc(record.transcript)}</blockquote>${record.provenance?`<p><strong>${esc(replayLabel(record.provenance.origin))}</strong><br>Origin: ${esc(record.provenance.origin)} · ${esc(record.provenance.pipeline)}${record.provenance.model?`<br>Model: ${esc(record.provenance.model)} · Captured: ${esc(record.provenance.capturedAt)} · Digest: ${esc(record.provenance.modelDigest)}`:''}</p>`:''}<p>Added ${esc(new Date(record.timestamp).toLocaleString())} · ${esc(record.inputSource)} · AI interpretation ${esc(record.confirmationStatus)}</p><ul>${record.observations.filter(o=>o.evidence).map(o=>`<li>${esc(o.code)}: “${esc(o.evidence)}”</li>`).join('')}</ul><details><summary>Raw unified record</summary><pre>${esc(JSON.stringify(record, null, 2))}</pre></details></details>`
 }
 async function processTranscript(transcript: string, inputSource: 'microphone' | 'pasted_text', timestamp: string) {
   $('pipelineStatus').textContent = 'Extracting'
@@ -137,5 +134,28 @@ document.querySelectorAll<HTMLButtonElement>('[data-stat]').forEach(b=>b.addEven
 $('goVoice').addEventListener('click',()=>screen('voice')); $('backHome').addEventListener('click',()=>screen('home'))
 $('acknowledge').addEventListener('click',()=>{ $('ackMessage').textContent='Reminder acknowledged'; $('acknowledge').textContent='Acknowledged' })
 $('submitText').addEventListener('click',async()=>{ const text=$<HTMLTextAreaElement>('demoText').value.trim(); if(!text||busy)return; setBusy(true); try { await processTranscript(text,'pasted_text',new Date().toISOString()) } finally {setBusy(false)} })
-jsonRequest('/api/demo').then(data=>{dataset=data;renderWearable()}).catch(()=>{ $('wearableDate').textContent='Shared dataset unavailable. Refresh when the backend is running.' })
+getDemo().then(data=>{dataset=data;renderWearable()}).catch(()=>{ $('wearableDate').textContent='Shared dataset unavailable. Refresh when the backend is running.' })
 screen('home')
+
+if (isReplay) {
+  document.querySelector('.developer-details')!.setAttribute('hidden', '')
+  $('voiceTitle').textContent = 'Example replay'
+  $('voiceHint').textContent = 'Select a synthetic example in AI Insights.'
+  $('recordButton').hidden = true
+  $('replayChoices').innerHTML = `<section class="replay-section" aria-label="Synthetic example choices"><h3>Try a synthetic example</h3><div class="replay-options">${examples.map(example=>`<button class="replay-option" data-example="${esc(example.id)}"><strong>${esc(example.title)}</strong><span>“${esc(example.transcript)}”</span><small>${esc(replayLabel(example.provenance.origin))}</small></button>`).join('')}</div><button id="resetReplay" class="reset-replay">Reset replay session</button><p class="replay-note">No microphone, transcription or live inference is used. Examples marked curated are hand-authored; examples marked Ollama have capture metadata in View details.</p></section>`
+  const showReplay = (record: UnifiedCheckin) => {
+    renderInsights(record)
+    $('pipelineStatus').textContent='Example replay'
+    $('saveStatus').textContent='Saved in this browser tab’s replay session. Open the GP overview to see the identical record. Dispensing adherence is unchanged.'
+    $('voiceTitle').textContent='Example added'
+    $('voiceHint').textContent='Synthetic example saved to the demo session.'
+  }
+  $('replayChoices').querySelectorAll<HTMLButtonElement>('[data-example]').forEach(button=>button.addEventListener('click',()=>{
+    const example=examples.find(e=>e.id===button.dataset.example)!
+    try { showReplay(session.add(example)) }
+    catch { $('saveStatus').textContent='Could not save this replay. Allow browser session storage and try again.' }
+  }))
+  $('resetReplay').addEventListener('click',()=>{try{session.reset();location.reload()}catch{$('saveStatus').textContent='Could not reset session storage.'}})
+  try { const latest=session.records()[0]; if(latest)showReplay(latest) }
+  catch { $('saveStatus').textContent='Browser session storage is unavailable. Allow it to use replay.' }
+} else { $('replayChoices').hidden=true }
