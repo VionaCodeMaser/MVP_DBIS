@@ -181,7 +181,7 @@ body[data-state="saved"] .watch-frame, body[data-state="saved"] .watch-screen { 
 
 
 /* Connected school MVP: calm pitch canvas, patient watch and extraction panel. */
-body { background:#f4f5f0; color:#273a36; margin:0; min-width:320px; }
+body { background:#f4f5f0; color:#273a36; margin:0; min-width:0; }
 button,a,summary { -webkit-tap-highlight-color:transparent; }
 button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid #a571de; outline-offset:4px; }
 .demo-shell,.gp-shell { max-width:1440px; margin:auto; padding:28px 44px; }

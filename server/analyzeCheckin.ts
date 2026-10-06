@@ -177,6 +177,8 @@ const EMOTION_ONLY_SYMPTOM_TEXT = /\b(?:ik voel me goed|i feel good|ik raak erva
 const EXPLICIT_CONFUSION = /\b(?:ik raak ervan in de war|ik weet niet|ik ben niet zeker|ik snap het niet|ik begrijp het niet|i am confused|i don't know|i am not sure)\b[^.!?]*/i
 const EXPLICIT_NOT_YET_TAKEN = /\b(?:ik heb mijn?\s+(?:tablet|medicijn|medicatie|pil)\s+nog niet genomen|i (?:have not|haven't|havent) taken (?:(?:my|any) )?(?:meds?|medicine|medication|pills?|tablets?)(?: yet)?)\b/i
 const EXPLICIT_TAKEN = /\b(?:ik heb mijn?\s+(?:tablet|medicijn|medicatie|pil) genomen|i (?:already )?took (?:my )?(?:meds?|medicine|medication|pills?|tablets?))\b/i
+const EXPLICIT_TAKEN_AFTER_MEDICATION_REFERENCE = /\bik heb het wel gedaan(?:,?\s+hoor)?\b/i
+const MEDICATION_REFERENCE = /\b(?:medicatie|medicijn(?:en)?|tablet(?:ten)?|pil(?:len)?|medication|medicine|meds?|tablets?|pills?)\b/i
 const EXPLICIT_MISSED = /\b(?:ik heb mijn?\s+(?:tablet|medicijn|medicatie|pil) gemist|i missed (?:my )?(?:meds?|medicine|medication|pills?|tablets?)|i forgot yesterday['’]s (?:my )?(?:meds?|medicine|medication|pills?|tablets?))\b/i
 const EXPLICIT_NOT_MISSED = /\b(?:i (?:did not|didn't|didnt|have not|haven't|havent) miss(?:ed)? (?:my )?(?:meds?|medicine|medication|pills?|tablets?))\b/i
 const EXPLICIT_UNCERTAIN_DOSE = /\b(?:ik weet niet of ik mijn?\s+(?:tablet|medicijn|medicatie|pil) heb genomen|i am not sure whether i took (?:my )?(?:tablet|medicine|medication|pill))\b/i
@@ -197,15 +199,50 @@ function evidenceIsExactSubstring(transcript: string, evidence: string | null) {
   return evidence === null || transcript.includes(evidence)
 }
 
+function evidenceWords(value: string) {
+  return [...value.matchAll(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu)].map((match) => ({
+    word: match[0].toLocaleLowerCase().replace(/’/g, "'"),
+    start: match.index!,
+    end: match.index! + match[0].length,
+  }))
+}
+
+function differsByOneAdjacentWordSwap(expected: string[], actual: string[]) {
+  if (expected.length !== actual.length || expected.length < 5) return false
+  const mismatches: number[] = []
+  for (let index = 0; index < expected.length; index += 1) {
+    if (expected[index] !== actual[index]) mismatches.push(index)
+    if (mismatches.length > 2) return false
+  }
+  if (mismatches.length !== 2) return false
+  const [first, second] = mismatches
+  return second === first + 1 && expected[first] === actual[second] && expected[second] === actual[first]
+}
+
 function alignEvidenceToTranscript(transcript: string, evidence: string | null) {
   if (evidence === null || transcript.includes(evidence)) return evidence
   const transcriptLower = transcript.toLocaleLowerCase()
   const evidenceLower = evidence.toLocaleLowerCase()
   const start = transcriptLower.indexOf(evidenceLower)
-  if (start < 0) return evidence
-  const aligned = transcript.slice(start, start + evidence.length)
-  debugOllama('aligned evidence capitalization to transcript', { modelEvidence: evidence, transcriptEvidence: aligned })
-  return aligned
+  if (start >= 0) {
+    const aligned = transcript.slice(start, start + evidence.length)
+    debugOllama('aligned evidence capitalization to transcript', { modelEvidence: evidence, transcriptEvidence: aligned })
+    return aligned
+  }
+
+  const modelWords = evidenceWords(evidence)
+  const transcriptWords = evidenceWords(transcript)
+  if (modelWords.length < 5 || modelWords.length > 20) return evidence
+  const candidates: string[] = []
+  for (let startIndex = 0; startIndex <= transcriptWords.length - modelWords.length; startIndex += 1) {
+    const window = transcriptWords.slice(startIndex, startIndex + modelWords.length)
+    if (differsByOneAdjacentWordSwap(modelWords.map((word) => word.word), window.map((word) => word.word))) {
+      candidates.push(transcript.slice(window[0].start, window[window.length - 1].end))
+    }
+  }
+  if (candidates.length !== 1) return evidence
+  debugOllama('aligned one adjacent word swap to transcript', { modelEvidence: evidence, transcriptEvidence: candidates[0] })
+  return candidates[0]
 }
 
 function alignResultEvidence(transcript: string, result: CheckinAnalysisV4): CheckinAnalysisV4 {
@@ -250,11 +287,56 @@ function removeAttributedSymptoms(transcript: string, result: CheckinAnalysisV4)
       const evidence = symptom.evidence.toLowerCase()
       if (EMOTION_ONLY_SYMPTOM_TEXT.test(evidence) || EMOTION_ONLY_SYMPTOM_TEXT.test(symptom.label)) return false
       if (THIRD_PERSON_REFERENCE.test(evidence)) return false
+      if (/^(?:he|she|they|hij|zij|ze|die)\b/i.test(evidence)) return false
       const evidenceIndex = normalizedTranscript.indexOf(evidence)
       if (evidenceIndex < 0) return true
       const precedingContext = normalizedTranscript.slice(Math.max(0, evidenceIndex - 120), evidenceIndex)
+      if (/\b(?:die|ze|zij|hij|they|she|he)\s+(?:give|gives|geven|geeft|doet|doen|cause|causes|has|have|is|are|feel|feels)\s+(?:(?:always|altijd)\s*)$/i.test(precedingContext)) return false
+      if (/\b(?:ik|i)\b/i.test(evidence)) return true
       return !THIRD_PERSON_REFERENCE.test(precedingContext)
     }),
+  }
+}
+
+function retainEvidenceBackedFindings(transcript: string, result: CheckinAnalysisV4): CheckinAnalysisV4 {
+  const symptoms = result.symptoms.filter((symptom) => evidenceIsExactSubstring(transcript, symptom.evidence))
+  const confusion = result.confusion.detected && result.confusion.evidence && evidenceIsExactSubstring(transcript, result.confusion.evidence)
+    ? result.confusion
+    : { detected: false, topic: null, evidence: null }
+  const emotionSupported = result.emotionalPolarity === 'not_stated'
+    ? result.emotionalEvidence === null
+    : result.emotionalEvidence !== null && evidenceIsExactSubstring(transcript, result.emotionalEvidence)
+  const medicationSupported = result.medicationAdherence === 'not_mentioned'
+    ? result.medicationEvidence === null
+    : result.medicationEvidence !== null && evidenceIsExactSubstring(transcript, result.medicationEvidence)
+  const possibleDisorientation = result.context.possibleDisorientation.detected
+    && result.context.possibleDisorientation.evidence
+    && evidenceIsExactSubstring(transcript, result.context.possibleDisorientation.evidence)
+    ? result.context.possibleDisorientation
+    : { detected: false, evidence: null }
+  const socialIsolation = result.context.socialIsolation.reported
+    && result.context.socialIsolation.evidence
+    && evidenceIsExactSubstring(transcript, result.context.socialIsolation.evidence)
+    ? result.context.socialIsolation
+    : { reported: false, evidence: null }
+  const contactPreference = result.context.contactPreference.noContactRequested
+    && result.context.contactPreference.evidence
+    && evidenceIsExactSubstring(transcript, result.context.contactPreference.evidence)
+    ? result.context.contactPreference
+    : { noContactRequested: false, evidence: null }
+
+  return {
+    ...result,
+    symptoms,
+    confusion,
+    emotionalState: emotionSupported ? result.emotionalState : 'not_stated',
+    emotionalPolarity: emotionSupported ? result.emotionalPolarity : 'not_stated',
+    emotionalEvidence: emotionSupported ? result.emotionalEvidence : null,
+    medicationAdherence: medicationSupported ? result.medicationAdherence : 'not_mentioned',
+    medicationEvidence: medicationSupported ? result.medicationEvidence : null,
+    context: { possibleDisorientation, socialIsolation, contactPreference },
+    requiresHumanReview: (possibleDisorientation.detected || socialIsolation.reported || contactPreference.noContactRequested)
+      && result.requiresHumanReview,
   }
 }
 
@@ -291,7 +373,11 @@ export function applyExplicitTranscriptRules(transcript: string, result: Checkin
   const notYetTaken = exactMatch(transcript, EXPLICIT_NOT_YET_TAKEN)
   const uncertainDose = exactMatch(transcript, EXPLICIT_UNCERTAIN_DOSE)
   const missedDose = exactMatch(transcript, EXPLICIT_MISSED)
-  const takenDose = exactMatch(transcript, EXPLICIT_TAKEN)
+  const contextualTaken = exactMatch(transcript, EXPLICIT_TAKEN_AFTER_MEDICATION_REFERENCE)
+  const contextualTakenIndex = contextualTaken ? transcript.toLocaleLowerCase().indexOf(contextualTaken.toLocaleLowerCase()) : -1
+  const nearbyMedicationReference = contextualTakenIndex >= 0
+    && MEDICATION_REFERENCE.test(transcript.slice(Math.max(0, contextualTakenIndex - 140), contextualTakenIndex))
+  const takenDose = exactMatch(transcript, EXPLICIT_TAKEN) || (nearbyMedicationReference ? contextualTaken : null)
   const notMissed = exactMatch(transcript, EXPLICIT_NOT_MISSED)
   const medicationEvidence = notYetTaken || uncertainDose || missedDose || takenDose
   if (notMissed && !notYetTaken && !uncertainDose && !missedDose && !takenDose) {
@@ -366,11 +452,12 @@ export async function requestOllamaAnalysis(transcript: string, fetcher: typeof 
       throw new AnalyzeCheckinError('invalid_output', `Ollama output did not match the required schema (${issue?.path.join('.') || 'root'}: ${issue?.message || 'invalid output'})`)
     }
     const withExplicitRules = applyExplicitTranscriptRules(transcript, validated.data)
-    const filtered = removeAttributedSymptoms(transcript, withExplicitRules)
-    const aligned = alignResultEvidence(transcript, filtered)
-    const finalValidation = CheckinAnalysisSchema.safeParse(aligned)
+    const aligned = alignResultEvidence(transcript, withExplicitRules)
+    const filtered = removeAttributedSymptoms(transcript, aligned)
+    const supported = retainEvidenceBackedFindings(transcript, filtered)
+    const finalValidation = CheckinAnalysisSchema.safeParse(supported)
     if (!finalValidation.success) throw new AnalyzeCheckinError('invalid_output', 'Transcript rules produced an invalid analysis')
-    validateEvidenceSubstrings(transcript, aligned)
+    validateEvidenceSubstrings(transcript, supported)
     return finalValidation.data
   } catch (error) {
     throw asOllamaError(error)

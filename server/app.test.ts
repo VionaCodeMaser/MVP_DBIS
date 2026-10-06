@@ -1,8 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Server } from 'node:http'
+import { fetch } from 'undici'
 import { app } from './app'
 import { clearCheckins } from './checkinStore'
 import { seedDemoCheckins } from './demoData'
+import type { UnifiedCheckin } from '../src/shared/checkin'
 let server: Server
 let base: string
 beforeAll(async()=>{ clearCheckins();seedDemoCheckins();server=app.listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));const address=server.address();if(!address||typeof address==='string')throw new Error('No port');base=`http://127.0.0.1:${address.port}` })
@@ -11,14 +13,14 @@ const analysis={analysisSchemaVersion:'checkin-analysis.v4',symptoms:[{label:'ne
 const post=(body:unknown)=>fetch(`${base}/api/checkins`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
 describe('connected MVP backend journey',()=>{
  it('retrieves the identical unconfirmed record through check-ins and the GP report, even after September',async()=>{
-  const response=await post({transcript:'My neck hurts, I haven’t taken my meds',analysis,inputSource:'microphone',timestamp:'2026-10-04T10:00:00.000Z',confirmationStatus:'unconfirmed'})
-  expect(response.status).toBe(201);const saved=await response.json();expect(saved.confirmationStatus).toBe('unconfirmed');expect(saved.observations[0].value.status).toBe('present')
-  const records=await (await fetch(`${base}/api/checkins?patientId=synthetic-demo-patient`)).json()
-  const report=await (await fetch(`${base}/api/reports/gp`)).json()
+    const response=await post({transcript:'My neck hurts, I haven’t taken my meds',analysis,inputSource:'microphone',timestamp:'2026-10-04T10:00:00.000Z',confirmationStatus:'unconfirmed'})
+    expect(response.status).toBe(201);const saved=await response.json() as UnifiedCheckin;expect(saved.confirmationStatus).toBe('unconfirmed');expect(saved.observations[0].value.status).toBe('present')
+    const records=await (await fetch(`${base}/api/checkins?patientId=synthetic-demo-patient`)).json() as {checkins:UnifiedCheckin[]}
+    const report=await (await fetch(`${base}/api/reports/gp`)).json() as {recentCheckins:UnifiedCheckin[];dispensingAdherence:number;wearable:unknown}
   expect(records.checkins.find((r:{id:string})=>r.id===saved.id)).toEqual(saved)
   expect(report.recentCheckins.find((r:{id:string})=>r.id===saved.id)).toEqual(saved)
   expect(report.dispensingAdherence).toBe(83.3)
-  const demo=await(await fetch(`${base}/api/demo`)).json();expect(report.wearable).toEqual(demo.patients[0].wearable)
+    const demo=await(await fetch(`${base}/api/demo`)).json() as {patients:Array<{wearable:unknown}>};expect(report.wearable).toEqual(demo.patients[0].wearable)
  })
  it('retains the transcript without observations when extraction fails',async()=>{
   const response=await post({transcript:'Synthetic captured message',inputSource:'pasted_text',extractionStatus:'failed'})

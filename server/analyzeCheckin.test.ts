@@ -22,6 +22,13 @@ function emptyAnalysis(): CheckinAnalysisV4 {
   }
 }
 
+function modelResponse(output: unknown) {
+  return async () => ({
+    ok: true,
+    json: async () => ({ message: { content: JSON.stringify(output) } }),
+  }) as never
+}
+
 it('rejects an empty transcript before contacting OpenAI', async () => {
   await expect(analyzeCheckin({ transcript: '   ' })).rejects.toMatchObject({ code: 'invalid_output' })
 })
@@ -82,6 +89,32 @@ it('rejects evidence that is not an exact transcript substring', () => {
     expect(result.medicationEvidence).toBe(expectedEvidence)
     expect(transcript.includes(result.medicationEvidence || '')).toBe(true)
   })
+
+it('repairs one swapped evidence word, keeps independent findings, and attributes family statements correctly', async () => {
+  const transcript = 'Hallo, ben ik weer. Ja vandaag gaat het overeen wel goed. Mijn dochter kwam langs en die is vergeten om de medicatie in te nemen wat jammer is. Maar ik heb het wel gedaan hoor, en ging allemaal goed. Verder heeft ze ook kinderen en die geven altijd koppijn. Maarja daarnaast heb ik nog wat last van mijn rug, dat komt wel met de leeftijd he. Dat was het dus. Verder helemaal top .'
+  const result = await requestOllamaAnalysis(transcript, modelResponse({
+    ...emptyAnalysis(),
+    symptoms: [
+      { label: 'back_pain', evidence: 'ik heb nog wat last van mijn rug', status: 'present' },
+      { label: 'headache', evidence: 'die geven altijd koppijn', status: 'present' },
+      { label: 'knee pain', evidence: 'ik heb last van mijn knie', status: 'present' },
+    ],
+    medicationAdherence: 'reported_missed',
+    medicationEvidence: 'Mijn dochter kwam langs en die is vergeten om de medicatie in te nemen',
+  }))
+
+  expect(result.symptoms).toEqual([{ label: 'back_pain', evidence: 'heb ik nog wat last van mijn rug', status: 'present' }])
+  expect(result.medicationAdherence).toBe('reported_taken')
+  expect(result.medicationEvidence).toBe('ik heb het wel gedaan hoor')
+  expect(transcript.includes(result.symptoms[0].evidence)).toBe(true)
+  expect(transcript.includes(result.medicationEvidence || '')).toBe(true)
+})
+
+it('does not infer medication taken from an unanchored Dutch pronoun', () => {
+  const result = applyExplicitTranscriptRules('Ik heb het wel gedaan hoor.', emptyAnalysis())
+  expect(result.medicationAdherence).toBe('not_mentioned')
+  expect(result.medicationEvidence).toBeNull()
+})
 
   it('does not infer a missed dose from a negative statement or missing medication detail', () => {
     const mistakenModelResult = {
