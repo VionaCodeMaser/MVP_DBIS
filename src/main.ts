@@ -3,6 +3,7 @@ import type { UnifiedCheckin } from './shared/checkin'
 import type { demoData } from '../server/demoData'
 
 type Demo = typeof demoData
+const careBridgeLogo = new URL('../care_bridge_logo_transparent_dark.png', import.meta.url).href
 const app = document.querySelector<HTMLDivElement>('#app')!
 const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!))
 app.innerHTML = `
@@ -21,6 +22,14 @@ app.innerHTML = `
     <section class="insights-side" aria-labelledby="insightsTitle"><p class="eyebrow">02 / STRUCTURED UNDERSTANDING</p><div class="insights-heading"><h2 id="insightsTitle">AI Insights</h2><span class="status-pill" id="pipelineStatus">Ready</span></div><p class="section-intro">Patient words become observations, with their original evidence kept alongside them.</p><div class="pipeline-strip"><span>Voice</span><b>→</b><span>Whisper</span><b>→</b><span>Ollama</span><b>→</b><span>Shared record</span></div><div id="insightCards" class="insight-grid" aria-live="polite"><div class="empty-insights"><span>✦</span><h3>Every voice matters.</h3><p>Record a synthetic check-in to see the actual extraction here.</p></div></div><p id="saveStatus" class="save-status" aria-live="polite"></p><div id="recordDetails"></div><details class="developer-details"><summary>Developer demo input</summary><p>Use synthetic text to test the same extraction and save flow without a microphone.</p><textarea id="demoText" aria-label="Synthetic check-in text" placeholder="My neck hurts, I haven’t taken my meds."></textarea><button id="submitText">Process synthetic text</button></details></section>
   </div><footer class="demo-footer">One fictional patient. One shared dataset. Patient statements remain separate from BP and dispenser records.</footer>
 </div>`
+const brand = document.querySelector<HTMLAnchorElement>('.demo-header .brand')!
+const brandLogo = document.createElement('img')
+brandLogo.className = 'brand-logo'
+brandLogo.src = careBridgeLogo
+brandLogo.alt = 'Care Bridge'
+brand.setAttribute('aria-label', 'Care Bridge home')
+brand.replaceChildren(brandLogo, Object.assign(document.createElement('small'), { textContent: 'SCHOOL MVP · SYNTHETIC DATA' }))
+
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T
 let busy = false
 let recorder: MediaRecorder | undefined

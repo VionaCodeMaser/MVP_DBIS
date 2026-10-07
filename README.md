@@ -1,8 +1,8 @@
-# PulseNote — school MVP
+# Care Bridge — connected school MVP
 
 ## For lecturers and examiners
 
-PulseNote demonstrates one connected journey: a fictional patient's smartwatch message becomes structured observations, and the GP sees those same records alongside synthetic blood-pressure, dispensing and wearable data.
+Care Bridge demonstrates one connected journey: a fictional patient's smartwatch message becomes structured observations, and the GP sees those same records alongside synthetic blood-pressure, dispensing and wearable data.
 
 **Current availability:** the local live Ollama version and the GP dashboard work. The three selectable example replays and hosted examiner link are planned, but are not implemented yet. There is no replay command or deployed URL to use at this stage.
 
